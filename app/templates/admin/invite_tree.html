@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}邀请树 - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-0">
+                        <i class="fas fa-sitemap text-primary"></i> 邀请树
+                    </h2>
+                    <p class="text-muted mb-0">查看代理邀请关系和层级结构</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="/admin/agents" class="btn btn-outline-primary">
+                        <i class="fas fa-users-cog"></i> 代理管理
+                    </a>
+                    <a href="/admin/agents/commission-records" class="btn btn-outline-success">
+                        <i class="fas fa-chart-line"></i> 返佣记录
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 代理选择器 -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-6">
+                            <label for="agentSelect" class="form-label">选择代理查看邀请树</label>
+                            <select class="form-select" id="agentSelect" onchange="changeAgent()">
+                                <option value="">-- 选择代理 --</option>
+                                {% for agent in agents %}
+                                <option value="{{ agent.id }}" {% if selected_agent_id == agent.id %}selected{% endif %}>
+                                    {{ agent.username }} ({{ agent.email }})
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-primary" onclick="loadTree()">
+                                    <i class="fas fa-sync"></i> 刷新
+                                </button>
+                                <button class="btn btn-success" onclick="exportTree()">
+                                    <i class="fas fa-download"></i> 导出
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 邀请树展示 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-tree"></i> 邀请关系树
+                        {% if tree_data %}
+                        - {{ tree_data.user.username }}
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if tree_data %}
+                        <div id="treeContainer" class="tree-container">
+                            {{ render_tree(tree_data) }}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-sitemap fa-3x text-muted mb-3"></i>
+                            <h5 class="text-muted">请选择一个代理查看邀请树</h5>
+                            <p class="text-muted">选择上方的代理用户来查看其邀请关系和下级用户</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 统计信息 -->
+    {% if tree_data %}
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> 统计信息
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-primary">{{ count_total_users(tree_data) }}</h4>
+                                <p class="text-muted mb-0">总用户数</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-success">{{ count_agents(tree_data) }}</h4>
+                                <p class="text-muted mb-0">代理用户</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-info">{{ count_levels(tree_data) }}</h4>
+                                <p class="text-muted mb-0">最大层级</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="text-center">
+                                <h4 class="text-warning">¥{{ "%.2f"|format(calculate_total_commission(tree_data)) }}</h4>
+                                <p class="text-muted mb-0">总返佣</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- 用户详情模态框 -->
+<div class="modal fade" id="userDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-user text-primary"></i> 用户详情
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userDetailContent">
+                <!-- 用户详情内容将在这里动态加载 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 切换代理
+function changeAgent() {
+    const agentId = document.getElementById('agentSelect').value;
+    if (agentId) {
+        window.location.href = `/admin/agents/invite-tree?agent_id=${agentId}`;
+    } else {
+        window.location.href = '/admin/agents/invite-tree';
+    }
+}
+
+// 加载邀请树
+function loadTree() {
+    location.reload();
+}
+
+// 导出邀请树
+function exportTree() {
+    // 这里可以实现导出功能
+    alert('导出功能开发中...');
+}
+
+// 显示用户详情
+function showUserDetail(userId) {
+    // 这里可以加载用户详情
+    document.getElementById('userDetailContent').innerHTML = `
+        <div class="text-center">
+            <i class="fas fa-spinner fa-spin fa-2x text-muted"></i>
+            <p class="mt-2 text-muted">加载用户详情中...</p>
+        </div>
+    `;
+    new bootstrap.Modal(document.getElementById('userDetailModal')).show();
+}
+
+// 树形结构点击事件
+document.addEventListener('DOMContentLoaded', function() {
+    // 为所有用户节点添加点击事件
+    document.querySelectorAll('.tree-node').forEach(function(node) {
+        node.addEventListener('click', function() {
+            const userId = this.getAttribute('data-user-id');
+            if (userId) {
+                showUserDetail(userId);
+            }
+        });
+    });
+});
+</script>
+
+<style>
+.tree-container {
+    min-height: 400px;
+    padding: 20px;
+}
+
+.tree-node {
+    display: inline-block;
+    margin: 10px;
+    padding: 15px 20px;
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    position: relative;
+}
+
+.tree-node:hover {
+    border-color: #007bff;
+    box-shadow: 0 4px 8px rgba(0,123,255,0.2);
+    transform: translateY(-2px);
+}
+
+.tree-node.agent {
+    border-color: #28a745;
+    background: linear-gradient(135deg, #f8fff9 0%, #e8f5e8 100%);
+}
+
+.tree-node.agent:hover {
+    border-color: #28a745;
+    box-shadow: 0 4px 8px rgba(40,167,69,0.2);
+}
+
+.tree-node .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #007bff;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    margin: 0 auto 10px;
+}
+
+.tree-node.agent .user-avatar {
+    background: #28a745;
+}
+
+.tree-node .user-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #495057;
+}
+
+.tree-node .user-email {
+    font-size: 0.875rem;
+    color: #6c757d;
+    margin-bottom: 5px;
+}
+
+.tree-node .user-level {
+    font-size: 0.75rem;
+    color: #6c757d;
+}
+
+.tree-node .agent-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #28a745;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    font-weight: bold;
+}
+
+.tree-level {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.tree-level-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 20px;
+    padding: 10px 20px;
+    background: #f8f9fa;
+    border-radius: 20px;
+    display: inline-block;
+}
+
+.tree-connector {
+    position: relative;
+    margin: 20px 0;
+}
+
+.tree-connector::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 2px;
+    height: 20px;
+    background: #dee2e6;
+}
+
+.tree-connector::after {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 20px;
+    height: 2px;
+    background: #dee2e6;
+}
+
+.card {
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+</style>
+{% endblock %}
+
+<!-- 宏定义：渲染树形结构 -->
+{% macro render_tree(node) %}
+<div class="tree-level">
+    <div class="tree-level-title">
+        第 {{ node.level + 1 }} 级
+        {% if node.level == 0 %}
+        (根节点)
+        {% endif %}
+    </div>
+    
+    <div class="tree-node {% if node.user.is_agent %}agent{% endif %}" data-user-id="{{ node.user.id }}">
+        <div class="user-avatar">
+            {{ node.user.username[0].upper() }}
+        </div>
+        <div class="user-name">{{ node.user.username }}</div>
+        <div class="user-email">{{ node.user.email }}</div>
+        <div class="user-level">
+            {% if node.user.is_agent %}
+                {{ node.user.agent_level }}级代理
+            {% else %}
+                普通用户
+            {% endif %}
+        </div>
+        {% if node.user.is_agent %}
+        <div class="agent-badge">
+            <i class="fas fa-star"></i>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if node.children %}
+        <div class="tree-connector"></div>
+        {% for child in node.children %}
+            {{ render_tree(child) }}
+        {% endfor %}
+    {% endif %}
+</div>
+{% endmacro %}
+
+<!-- 宏定义：统计函数 -->
+{% macro count_total_users(node) %}
+    {% set total = 1 %}
+    {% for child in node.children %}
+        {% set total = total + count_total_users(child) %}
+    {% endfor %}
+    {{ total }}
+{% endmacro %}
+
+{% macro count_agents(node) %}
+    {% set agents = 1 if node.user.is_agent else 0 %}
+    {% for child in node.children %}
+        {% set agents = agents + count_agents(child) %}
+    {% endfor %}
+    {{ agents }}
+{% endmacro %}
+
+{% macro count_levels(node) %}
+    {% set max_level = node.level %}
+    {% for child in node.children %}
+        {% set child_level = count_levels(child) %}
+        {% if child_level > max_level %}
+            {% set max_level = child_level %}
+        {% endif %}
+    {% endfor %}
+    {{ max_level + 1 }}
+{% endmacro %}
+
+{% macro calculate_total_commission(node) %}
+    {% set total = node.user.total_commission %}
+    {% for child in node.children %}
+        {% set total = total + calculate_total_commission(child) %}
+    {% endfor %}
+    {{ total }}
+{% endmacro %}

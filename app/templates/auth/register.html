@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}王牌企鹅 - 用户注册 - 智能管理平台{% endblock %}
+
+{% block auth_content %}
+
+<div class="card">
+    <div class="card-body p-5">
+        <div class="text-center mb-4">
+            <h3 class="card-title">
+                <i class="fas fa-user-plus text-primary"></i> 王牌企鹅 - 用户注册
+            </h3>
+            <p class="text-muted">创建您的王牌企鹅智能管理平台账号，享受专业的社交媒体营销服务</p>
+        </div>
+        
+        {% if error %}
+        <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle"></i> {{ error }}
+        </div>
+        {% endif %}
+        
+        <form method="post" action="/auth/register">
+            <div class="mb-3">
+                <label for="email" class="form-label">
+                    <i class="fas fa-envelope"></i> 邮箱地址
+                </label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="username" class="form-label">
+                    <i class="fas fa-user"></i> 用户名
+                </label>
+                <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="password" class="form-label">
+                    <i class="fas fa-lock"></i> 密码
+                </label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="confirm_password" class="form-label">
+                    <i class="fas fa-lock"></i> 确认密码
+                </label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+            </div>
+            
+            <div class="mb-3">
+                <label for="invite_code" class="form-label">
+                    <i class="fas fa-gift text-success"></i> 邀请码 <span class="text-muted">(可选)</span>
+                </label>
+                <input type="text" class="form-control" id="invite_code" name="invite_code" 
+                       placeholder="请输入邀请码" maxlength="20" value="{{ request.query_params.get('invite_code', '') }}">
+                <div class="form-text">
+                    <i class="fas fa-info-circle text-info"></i> 
+                    如果您有邀请码，请填写以获得更好的服务体验
+                </div>
+            </div>
+            
+            <div class="d-grid">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-user-plus"></i> 注册
+                </button>
+            </div>
+        </form>
+        
+        <div class="text-center mt-3">
+            <p class="text-muted">已有账号？ 
+                <a href="/auth/login" class="text-decoration-none">立即登录</a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,427 @@
+{% extends "base.html" %}
+
+{% block title %}用户管理 - {{ title }}{% endblock %}
+
+{% block content %}
+<style>
+/* 减少管理界面大小20% - 只影响主要内容，不影响模态框 */
+.admin-main-content {
+    transform: scale(0.8);
+    transform-origin: top left;
+    width: 125%; /* 补偿缩放后的宽度 */
+    margin-bottom: -20%; /* 补偿缩放后的高度 */
+}
+
+/* 调整卡片和按钮大小 */
+.admin-main-content .card {
+    font-size: 0.9em;
+}
+
+.admin-main-content .btn {
+    font-size: 0.9em;
+    padding: 0.4rem 0.8rem;
+}
+
+.admin-main-content .form-control, 
+.admin-main-content .form-select {
+    font-size: 0.9em;
+    padding: 0.4rem 0.6rem;
+}
+
+.admin-main-content .table {
+    font-size: 0.9em;
+}
+
+.admin-main-content .table th, 
+.admin-main-content .table td {
+    padding: 0.5rem;
+}
+
+/* 确保模态框不受影响 */
+.modal {
+    transform: none !important;
+    z-index: 1055 !important;
+}
+
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+
+.modal-dialog {
+    max-width: 500px;
+    transform: none !important;
+    z-index: 1055 !important;
+}
+
+/* 确保模态框内容可交互 */
+.modal-content {
+    pointer-events: auto !important;
+}
+
+.modal-body {
+    pointer-events: auto !important;
+}
+
+.modal-footer {
+    pointer-events: auto !important;
+}
+</style>
+
+<div class="d-flex justify-content-end align-items-center mb-4">
+    <div>
+        <a href="/admin/lxmjdh" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> 返回管理台
+        </a>
+    </div>
+</div>
+
+<div class="admin-main-content">
+<!-- 用户列表 -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-list"></i> 用户列表</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>用户ID</th>
+                        <th>用户名</th>
+                        <th>邮箱</th>
+                        <th>会员等级</th>
+                        <th>余额</th>
+                        <th>总消费</th>
+                        <th>总返现</th>
+                        <th>状态</th>
+                        <th>注册时间</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for u in users %}
+                    <tr>
+                        <td>{{ u.id }}</td>
+                        <td>{{ u.username }}</td>
+                        <td>{{ u.email }}</td>
+                        <td>
+                            <select class="form-select form-select-sm" onchange="updateMemberLevel({{ u.id }}, this.value)">
+                                <option value="1" {{ 'selected' if u.member_level == 1 else '' }}>普通会员</option>
+                                <option value="2" {{ 'selected' if u.member_level == 2 else '' }}>VIP会员</option>
+                                <option value="3" {{ 'selected' if u.member_level == 3 else '' }}>钻石会员</option>
+                                <option value="4" {{ 'selected' if u.member_level == 4 else '' }}>至尊会员</option>
+                            </select>
+                        </td>
+                        <td>
+                            <span class="h6 text-success">¥{{ "%.2f"|format(u.balance) }}</span>
+                        </td>
+                        <td>¥{{ "%.2f"|format(u.total_consumed) }}</td>
+                        <td>¥{{ "%.2f"|format(u.total_cashback) }}</td>
+                        <td>
+                            <span class="badge bg-{{ 'success' if u.status == 1 else 'danger' }}">
+                                {{ '正常' if u.status == 1 else '禁用' }}
+                            </span>
+                        </td>
+                        <td>{{ u.created_at.strftime('%Y-%m-%d %H:%M') if u.created_at else 'N/A' }}</td>
+                                <td>
+                                    <div class="btn-group" role="group">
+                                        <button class="btn btn-sm btn-outline-success" onclick="rechargeUser({{ u.id }}, '{{ u.username }}')">
+                                            <i class="fas fa-plus"></i> 充值
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="editUser({{ u.id }}, '{{ u.username }}', {{ u.member_level }}, {{ u.total_consumed }}, {{ u.total_cashback }})">
+                                            <i class="fas fa-edit"></i> 编辑
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-info" onclick="viewUserDetails({{ u.id }})">
+                                            <i class="fas fa-eye"></i> 详情
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-danger" onclick="deleteUser({{ u.id }}, '{{ u.username }}')">
+                                            <i class="fas fa-trash"></i> 删除
+                                        </button>
+                                    </div>
+                                </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+</div> <!-- 结束 admin-main-content -->
+
+<!-- 充值模态框 -->
+<div class="modal fade" id="rechargeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">用户充值</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="rechargeForm">
+                    <input type="hidden" id="rechargeUserId">
+                    <div class="mb-3">
+                        <label class="form-label">用户</label>
+                        <input type="text" class="form-control" id="rechargeUsername" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rechargeAmount" class="form-label">充值金额 (¥)</label>
+                        <input type="number" class="form-control" id="rechargeAmount" step="0.01" placeholder="输入充值金额" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="rechargeReason" class="form-label">充值原因</label>
+                        <textarea class="form-control" id="rechargeReason" rows="3" placeholder="可选：填写充值原因"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" onclick="submitRecharge()">确认充值</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑用户模态框 -->
+<div class="modal fade" id="editUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑用户信息</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editUserForm">
+                    <input type="hidden" id="editUserId">
+                    <div class="mb-3">
+                        <label class="form-label">用户名</label>
+                        <input type="text" class="form-control" id="editUsername" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editMemberLevel" class="form-label">会员等级</label>
+                        <select class="form-select" id="editMemberLevel" required>
+                            <option value="1">普通会员 (2% 返佣)</option>
+                            <option value="2">VIP会员 (10% 返佣)</option>
+                            <option value="3">钻石会员 (15% 返佣)</option>
+                            <option value="4">至尊会员 (20% 返佣)</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTotalConsumed" class="form-label">总消费 (¥)</label>
+                        <input type="number" class="form-control" id="editTotalConsumed" step="0.01" placeholder="输入总消费金额">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editTotalCashback" class="form-label">总返现 (¥)</label>
+                        <input type="number" class="form-control" id="editTotalCashback" step="0.01" placeholder="输入总返现金额">
+                    </div>
+                    <div class="mb-3">
+                        <label for="editCustomCommission" class="form-label">自定义返佣比例 (%)</label>
+                        <input type="number" class="form-control" id="editCustomCommission" step="0.01" min="0" max="100" placeholder="留空使用等级默认比例">
+                        <div class="form-text">留空将使用会员等级默认返佣比例</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" onclick="submitEditUser()">保存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 用户详情模态框 -->
+<div class="modal fade" id="userDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">用户详情</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="userDetailsContent">
+                <!-- 用户详情内容将通过JavaScript动态加载 -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updateMemberLevel(userId, newLevel) {
+    if (!confirm('确定要更新该用户的会员等级吗？')) {
+        location.reload(); // 恢复原值
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('member_level', newLevel);
+    
+    fetch(`/admin/lxmjdh/users/${userId}/update-level`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+        } else {
+            alert('更新失败: ' + data.message);
+            location.reload(); // 恢复原值
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('网络错误，请稍后重试');
+        location.reload(); // 恢复原值
+    });
+}
+
+function rechargeUser(userId, username) {
+    document.getElementById('rechargeUserId').value = userId;
+    document.getElementById('rechargeUsername').value = username;
+    document.getElementById('rechargeAmount').value = '';
+    document.getElementById('rechargeReason').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('rechargeModal'));
+    modal.show();
+}
+
+function submitRecharge() {
+    const userId = document.getElementById('rechargeUserId').value;
+    const amount = document.getElementById('rechargeAmount').value;
+    
+    if (!amount) {
+        alert('请输入充值金额');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('user_id', userId);
+    formData.append('amount', amount);
+    
+    fetch('/admin/lxmjdh/recharge-balance', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            bootstrap.Modal.getInstance(document.getElementById('rechargeModal')).hide();
+            location.reload(); // 刷新页面以显示最新余额
+        } else {
+            alert('充值失败: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('网络错误，请稍后重试');
+    });
+}
+
+function editUser(userId, username, memberLevel, totalConsumed, totalCashback) {
+    document.getElementById('editUserId').value = userId;
+    document.getElementById('editUsername').value = username;
+    document.getElementById('editMemberLevel').value = memberLevel;
+    document.getElementById('editTotalConsumed').value = totalConsumed;
+    document.getElementById('editTotalCashback').value = totalCashback;
+    document.getElementById('editCustomCommission').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+    modal.show();
+}
+
+function submitEditUser() {
+    const userId = document.getElementById('editUserId').value;
+    const memberLevel = document.getElementById('editMemberLevel').value;
+    const totalConsumed = document.getElementById('editTotalConsumed').value;
+    const totalCashback = document.getElementById('editTotalCashback').value;
+    const customCommission = document.getElementById('editCustomCommission').value;
+    
+    const formData = new FormData();
+    formData.append('member_level', memberLevel);
+    formData.append('total_consumed', totalConsumed);
+    formData.append('total_cashback', totalCashback);
+    if (customCommission) {
+        formData.append('custom_commission', customCommission);
+    }
+    
+    fetch(`/admin/lxmjdh/users/${userId}/update`, {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            bootstrap.Modal.getInstance(document.getElementById('editUserModal')).hide();
+            location.reload(); // 刷新页面以显示最新数据
+        } else {
+            alert('更新失败: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('网络错误，请稍后重试');
+    });
+}
+
+function deleteUser(userId, username) {
+    if (!confirm(`确定要删除用户 "${username}" 吗？\n\n此操作不可撤销！`)) {
+        return;
+    }
+    
+    if (!confirm('请再次确认删除操作！\n\n删除后将无法恢复用户数据！')) {
+        return;
+    }
+    
+    fetch(`/admin/lxmjdh/users/${userId}/delete`, {
+        method: 'POST'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            location.reload(); // 刷新页面
+        } else {
+            alert('删除失败: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('网络错误，请稍后重试');
+    });
+}
+
+function viewUserDetails(userId) {
+    // 这里可以添加获取用户详情的API调用
+    // 暂时显示基本信息
+    const userRow = document.querySelector(`tr:has(td:first-child:contains("${userId}"))`);
+    if (userRow) {
+        const cells = userRow.querySelectorAll('td');
+        const details = `
+            <div class="row">
+                <div class="col-md-6">
+                    <h6>基本信息</h6>
+                    <p><strong>用户ID:</strong> ${cells[0].textContent}</p>
+                    <p><strong>用户名:</strong> ${cells[1].textContent}</p>
+                    <p><strong>邮箱:</strong> ${cells[2].textContent}</p>
+                    <p><strong>注册时间:</strong> ${cells[8].textContent}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>财务信息</h6>
+                    <p><strong>余额:</strong> ${cells[4].textContent}</p>
+                    <p><strong>总消费:</strong> ${cells[5].textContent}</p>
+                    <p><strong>总返现:</strong> ${cells[6].textContent}</p>
+                    <p><strong>状态:</strong> ${cells[7].textContent}</p>
+                </div>
+            </div>
+        `;
+        document.getElementById('userDetailsContent').innerHTML = details;
+        
+        const modal = new bootstrap.Modal(document.getElementById('userDetailsModal'));
+        modal.show();
+    }
+}
+</script>
+{% endblock %}

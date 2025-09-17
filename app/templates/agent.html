@@ -1,0 +1,609 @@
+{% extends "base.html" %}
+
+{% block title %}代理中心 - {{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- 页面标题 -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="d-flex justify-content-end align-items-center">
+                {% if user.is_agent %}
+                <div class="agent-badge-large">
+                    <i class="fas fa-star"></i>
+                    <span>{{ user.agent_level }}级代理</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 邀请码卡片 -->
+    <div class="row mb-3">
+        <div class="col-12">
+            <div class="card invite-card">
+                <div class="card-header invite-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-share-alt text-success"></i> 邀请分享
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <div class="invite-link-section">
+                                <label class="form-label">邀请链接：</label>
+                                <div class="input-group mb-3">
+                                    <input type="text" class="form-control" id="inviteLink" 
+                                           value="{{ request.url.scheme }}://{{ request.url.netloc }}/auth/register?invite_code={{ user.invite_code }}" 
+                                           readonly>
+                                    <button class="btn btn-outline-primary" onclick="copyInviteLink()">
+                                        <i class="fas fa-copy"></i> 复制
+                                    </button>
+                                </div>
+                                <div class="qr-code-section">
+                                    <button class="btn btn-success" onclick="generateQRCode()">
+                                        <i class="fas fa-qrcode"></i> 生成邀请二维码
+                                    </button>
+                                    <div id="qrCodeContainer" class="mt-3" style="display: none;">
+                                        <div class="qr-code-display">
+                                            <img id="qrCodeImage" src="" alt="邀请二维码" class="qr-image">
+                                            <div class="qr-download">
+                                                <button class="btn btn-sm btn-outline-success" onclick="downloadQRCode()">
+                                                    <i class="fas fa-download"></i> 下载二维码
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="invite-stats">
+                                <div class="stat-item">
+                                    <div class="stat-number">{{ stats.total_invitees }}</div>
+                                    <div class="stat-label">邀请用户</div>
+                                </div>
+                                <div class="stat-item">
+                                    <div class="stat-number">¥{{ "%.2f"|format(stats.total_commission) }}</div>
+                                    <div class="stat-label">总返佣</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 分佣说明和邀请用户 -->
+    <div class="row">
+        <!-- 分佣说明 -->
+        <div class="col-lg-6 mb-3">
+            <div class="card commission-info-card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-percentage text-info"></i> 分佣说明
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="commission-rules">
+                        <div class="rule-item">
+                            <div class="rule-icon">
+                                <i class="fas fa-handshake text-success"></i>
+                            </div>
+                            <div class="rule-content">
+                                <h6>直接邀请返佣</h6>
+                                <p>您直接邀请的用户消费时，您可获得 <strong>{{ "%.1f"|format(user.direct_commission_rate * 100) }}%</strong> 的返佣</p>
+                            </div>
+                        </div>
+                        
+                        <div class="rule-item">
+                            <div class="rule-icon">
+                                <i class="fas fa-sitemap text-warning"></i>
+                            </div>
+                            <div class="rule-content">
+                                <h6>间接邀请返佣</h6>
+                                <p>您下级邀请的用户消费时，您可获得 <strong>{{ "%.1f"|format(user.indirect_commission_rate * 100) }}%</strong> 的返佣</p>
+                            </div>
+                        </div>
+                        
+                        <div class="rule-item">
+                            <div class="rule-icon">
+                                <i class="fas fa-clock text-primary"></i>
+                            </div>
+                            <div class="rule-content">
+                                <h6>返佣时间</h6>
+                                <p>用户订单完成后，返佣将自动计算并记录到您的账户</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 邀请用户列表 -->
+        <div class="col-lg-6 mb-3">
+            <div class="card invitees-card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-user-friends text-success"></i> 我的邀请用户
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_invitees %}
+                        <div class="invitees-list">
+                            {% for invitee in recent_invitees %}
+                            <div class="invitee-item">
+                                <div class="invitee-avatar">
+                                    {{ invitee.username[0].upper() }}
+                                </div>
+                                <div class="invitee-info">
+                                    <div class="invitee-name">{{ invitee.username }}</div>
+                                    <div class="invitee-email">{{ invitee.email }}</div>
+                                    <div class="invitee-date">
+                                        <i class="fas fa-calendar"></i>
+                                        {{ invitee.created_at.strftime('%Y-%m-%d') }}
+                                    </div>
+                                </div>
+                                <div class="invitee-status">
+                                    {% if invitee.is_agent %}
+                                        <span class="badge bg-success">代理</span>
+                                    {% else %}
+                                        <span class="badge bg-primary">用户</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-invitees">
+                            <i class="fas fa-user-plus fa-3x text-muted mb-3"></i>
+                            <h6 class="text-muted">还没有邀请用户</h6>
+                            <p class="text-muted">分享您的邀请码，开始获得返佣吧！</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 如何邀请说明 -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card how-to-invite-card">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-question-circle text-primary"></i> 如何邀请好友
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="step-item">
+                                <div class="step-number">1</div>
+                                <div class="step-content">
+                                    <h6>复制邀请链接</h6>
+                                    <p>点击上方"复制"按钮，获取您的专属邀请链接</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="step-item">
+                                <div class="step-number">2</div>
+                                <div class="step-content">
+                                    <h6>分享给好友</h6>
+                                    <p>通过微信、QQ、短信等方式分享邀请链接给好友</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="step-item">
+                                <div class="step-number">3</div>
+                                <div class="step-content">
+                                    <h6>好友注册</h6>
+                                    <p>好友通过您的链接注册成为平台用户</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="step-item">
+                                <div class="step-number">4</div>
+                                <div class="step-content">
+                                    <h6>获得返佣</h6>
+                                    <p>好友消费时，您将自动获得相应比例的返佣</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 复制邀请链接
+function copyInviteLink() {
+    const inviteLink = document.getElementById('inviteLink');
+    inviteLink.select();
+    
+    try {
+        document.execCommand('copy');
+        
+        // 显示成功提示
+        const button = event.target.closest('button');
+        const originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i> 已复制';
+        button.classList.remove('btn-outline-primary');
+        button.classList.add('btn-success');
+        
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.classList.remove('btn-success');
+            button.classList.add('btn-outline-primary');
+        }, 2000);
+        
+        showToast('邀请链接已复制到剪贴板！', 'success');
+        
+    } catch (err) {
+        console.error('复制失败:', err);
+        showToast('复制失败，请手动复制', 'error');
+    }
+}
+
+// 生成二维码
+async function generateQRCode() {
+    const button = event.target.closest('button');
+    const originalText = button.innerHTML;
+    
+    try {
+        // 显示加载状态
+        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 生成中...';
+        button.disabled = true;
+        
+        // 调用API生成二维码
+        const response = await fetch('/agent/qrcode');
+        const result = await response.json();
+        
+        if (result.success) {
+            // 显示二维码
+            const qrCodeContainer = document.getElementById('qrCodeContainer');
+            const qrCodeImage = document.getElementById('qrCodeImage');
+            
+            qrCodeImage.src = result.qr_code;
+            qrCodeContainer.style.display = 'block';
+            
+            showToast('二维码生成成功！', 'success');
+        } else {
+            showToast('二维码生成失败', 'error');
+        }
+        
+    } catch (error) {
+        console.error('生成二维码失败:', error);
+        showToast('生成二维码失败', 'error');
+    } finally {
+        // 恢复按钮状态
+        button.innerHTML = originalText;
+        button.disabled = false;
+    }
+}
+
+// 下载二维码
+function downloadQRCode() {
+    const qrCodeImage = document.getElementById('qrCodeImage');
+    const link = document.createElement('a');
+    link.download = '邀请二维码.png';
+    link.href = qrCodeImage.src;
+    link.click();
+    
+    showToast('二维码下载成功！', 'success');
+}
+
+// 显示提示消息
+function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        font-size: 14px;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    document.body.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease-in';
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
+</script>
+
+<style>
+/* 代理徽章 */
+.agent-badge-large {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.agent-badge-large i {
+    margin-right: 6px;
+}
+
+/* 邀请码卡片 */
+.invite-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+}
+
+.invite-header {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+}
+
+/* 二维码样式 */
+.qr-code-section {
+    margin-top: 10px;
+}
+
+.qr-code-display {
+    text-align: center;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 2px dashed #dee2e6;
+}
+
+.qr-image {
+    max-width: 200px;
+    height: auto;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.qr-download {
+    margin-top: 10px;
+}
+
+.invite-stats {
+    display: flex;
+    justify-content: space-around;
+    text-align: center;
+}
+
+.stat-item {
+    padding: 8px;
+}
+
+.stat-number {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #28a745;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: #6c757d;
+    margin-top: 4px;
+}
+
+/* 分佣说明 */
+.commission-info-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+    height: 100%;
+}
+
+.commission-rules {
+    padding: 8px 0;
+}
+
+.rule-item {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 15px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.rule-icon {
+    margin-right: 12px;
+    font-size: 1.2rem;
+}
+
+.rule-content h6 {
+    margin-bottom: 6px;
+    color: #495057;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.rule-content p {
+    margin-bottom: 0;
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+/* 邀请用户列表 */
+.invitees-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+    height: 100%;
+}
+
+.invitees-list {
+    max-height: 320px;
+    overflow-y: auto;
+}
+
+.invitee-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.invitee-item:last-child {
+    border-bottom: none;
+}
+
+.invitee-avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 0.8rem;
+    margin-right: 12px;
+}
+
+.invitee-info {
+    flex: 1;
+}
+
+.invitee-name {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 2px;
+    font-size: 0.9rem;
+}
+
+.invitee-email {
+    font-size: 0.75rem;
+    color: #6c757d;
+    margin-bottom: 2px;
+}
+
+.invitee-date {
+    font-size: 0.7rem;
+    color: #adb5bd;
+}
+
+.invitee-date i {
+    margin-right: 3px;
+}
+
+.invitee-status {
+    margin-left: 8px;
+}
+
+.no-invitees {
+    text-align: center;
+    padding: 30px 15px;
+}
+
+/* 如何邀请说明 */
+.how-to-invite-card {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 3px 15px rgba(0, 0, 0, 0.08);
+}
+
+.step-item {
+    text-align: center;
+    padding: 15px 8px;
+}
+
+.step-number {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 1rem;
+    margin: 0 auto 12px;
+}
+
+.step-content h6 {
+    color: #495057;
+    font-weight: 600;
+    margin-bottom: 6px;
+    font-size: 0.9rem;
+}
+
+.step-content p {
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin-bottom: 0;
+}
+
+/* 动画 */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .invite-stats {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .step-item {
+        margin-bottom: 20px;
+    }
+}
+</style>
+{% endblock %}

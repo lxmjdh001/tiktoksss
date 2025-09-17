@@ -1,0 +1,452 @@
+{% extends "base.html" %}
+
+{% block title %}管理员控制台 - {{ title }}{% endblock %}
+
+{% block content %}
+<style>
+/* 减少管理界面大小20% - 只影响主要内容，不影响模态框 */
+.admin-main-content {
+    transform: scale(0.8);
+    transform-origin: top left;
+    width: 125%; /* 补偿缩放后的宽度 */
+    margin-bottom: -20%; /* 补偿缩放后的高度 */
+}
+
+/* 调整卡片和按钮大小 */
+.admin-main-content .card {
+    font-size: 0.9em;
+}
+
+.admin-main-content .btn {
+    font-size: 0.9em;
+    padding: 0.4rem 0.8rem;
+}
+
+.admin-main-content .form-control, 
+.admin-main-content .form-select {
+    font-size: 0.9em;
+    padding: 0.4rem 0.6rem;
+}
+
+.admin-main-content .table {
+    font-size: 0.9em;
+}
+
+.admin-main-content .table th, 
+.admin-main-content .table td {
+    padding: 0.5rem;
+}
+
+/* 调整统计卡片 */
+.admin-main-content .card-body h4 {
+    font-size: 1.5rem;
+}
+
+.admin-main-content .card-body p {
+    font-size: 0.9rem;
+}
+
+.admin-main-content .card-body .fa-2x {
+    font-size: 1.5em !important;
+}
+
+/* 确保模态框不受影响 */
+.modal {
+    transform: none !important;
+    z-index: 1055 !important;
+}
+
+.modal-backdrop {
+    z-index: 1050 !important;
+}
+
+.modal-dialog {
+    max-width: 500px;
+    transform: none !important;
+    z-index: 1055 !important;
+}
+
+/* 确保模态框内容可交互 */
+.modal-content {
+    pointer-events: auto !important;
+}
+
+.modal-body {
+    pointer-events: auto !important;
+}
+
+.modal-footer {
+    pointer-events: auto !important;
+}
+</style>
+
+<div class="d-flex justify-content-end align-items-center mb-4">
+    <div class="text-muted">
+        欢迎，<strong>{{ user.username }}</strong>！
+    </div>
+</div>
+
+<div class="admin-main-content">
+<!-- 统计卡片 -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ total_users }}</h4>
+                        <p class="mb-0">总用户数</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-users fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ total_orders }}</h4>
+                        <p class="mb-0">总订单数</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-shopping-cart fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ pending_orders }}</h4>
+                        <p class="mb-0">待处理订单</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-clock fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4>{{ completed_orders }}</h4>
+                        <p class="mb-0">已完成订单</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-check-circle fa-2x"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 功能菜单 -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-tags"></i> 价格管理</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">管理前台显示的服务价格</p>
+                <form id="priceForm">
+                    <div class="mb-3">
+                        <label for="serviceId" class="form-label">服务ID</label>
+                        <input type="number" class="form-control" id="serviceId" placeholder="输入服务ID" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="serviceName" class="form-label">服务名称 <small class="text-muted">(可选，不填写则保持原有名称)</small></label>
+                        <input type="text" class="form-control" id="serviceName" placeholder="输入服务名称（可选）">
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPrice" class="form-label">新价格 (¥)</label>
+                        <input type="number" class="form-control" id="newPrice" step="0.01" placeholder="输入新价格" required>
+                    </div>
+                    <button type="button" class="btn btn-primary" onclick="updatePrice()">
+                        <i class="fas fa-save"></i> 更新价格
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0"><i class="fas fa-wallet"></i> 余额充值</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">为用户手动充值余额</p>
+                <form id="rechargeForm">
+                    <div class="mb-3">
+                        <label for="userId" class="form-label">用户ID</label>
+                        <input type="number" class="form-control" id="userId" placeholder="输入用户ID" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">充值金额 (¥)</label>
+                        <input type="number" class="form-control" id="amount" step="0.01" placeholder="输入充值金额" required>
+                    </div>
+                    <button type="button" class="btn btn-success" onclick="rechargeBalance()">
+                        <i class="fas fa-plus"></i> 充值余额
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 用户管理 -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-users"></i> 用户管理</h5>
+                <a href="/admin/lxmjdh/users" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-external-link-alt"></i> 查看全部用户
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>用户ID</th>
+                                <th>用户名</th>
+                                <th>邮箱</th>
+                                <th>会员等级</th>
+                                <th>余额</th>
+                                <th>注册时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for u in users %}
+                            <tr>
+                                <td>{{ u.id }}</td>
+                                <td>{{ u.username }}</td>
+                                <td>{{ u.email }}</td>
+                                <td>
+                                    <span class="badge bg-primary">{{ u.member_level }}</span>
+                                </td>
+                                <td>¥{{ "%.2f"|format(u.balance) }}</td>
+                                <td>{{ u.created_at.strftime('%Y-%m-%d %H:%M') if u.created_at else 'N/A' }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-outline-primary" onclick="quickRecharge({{ u.id }}, '{{ u.username }}')">
+                                        <i class="fas fa-plus"></i> 充值
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- API设置 -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0"><i class="fas fa-cog"></i> API设置</h5>
+                <a href="/admin/lxmjdh/api-settings" class="btn btn-outline-primary btn-sm">
+                    <i class="fas fa-external-link-alt"></i> 管理API设置
+                </a>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-server text-primary me-3"></i>
+                            <div>
+                                <h6 class="mb-1">当前平台</h6>
+                                <span class="text-muted">APPFUWU API</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center mb-3">
+                            <i class="fas fa-key text-success me-3"></i>
+                            <div>
+                                <h6 class="mb-1">API状态</h6>
+                                <span class="text-success">已配置</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-8">
+                        <p class="text-muted mb-0">
+                            <i class="fas fa-info-circle"></i> 
+                            管理API平台选择和密钥配置，支持APPFUWU和Shangfen平台
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-end">
+                        <a href="/admin/lxmjdh/profit-analysis" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-chart-line"></i> 利润分析
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div> <!-- 结束 admin-main-content -->
+
+<!-- 快速充值模态框 -->
+<div class="modal fade" id="quickRechargeModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">快速充值</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="quickRechargeForm">
+                    <input type="hidden" id="quickUserId">
+                    <div class="mb-3">
+                        <label class="form-label">用户</label>
+                        <input type="text" class="form-control" id="quickUsername" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label for="quickAmount" class="form-label">充值金额 (¥)</label>
+                        <input type="number" class="form-control" id="quickAmount" step="0.01" placeholder="输入充值金额" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-success" onclick="submitQuickRecharge()">确认充值</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function updatePrice() {
+    const serviceId = document.getElementById('serviceId').value;
+    const serviceName = document.getElementById('serviceName').value;
+    const newPrice = document.getElementById('newPrice').value;
+    
+    console.log('服务ID:', serviceId);
+    console.log('服务名称:', serviceName);
+    console.log('新价格:', newPrice);
+    
+    if (!serviceId || !newPrice) {
+        alert('请填写服务ID和新价格');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('service_id', serviceId);
+    formData.append('service_name', serviceName || ''); // 确保即使为空也发送空字符串
+    formData.append('new_price', newPrice);
+    
+    fetch('/admin/lxmjdh/update-price', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            document.getElementById('priceForm').reset();
+        } else {
+            alert('更新失败: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('网络错误，请稍后重试');
+    });
+}
+
+function rechargeBalance() {
+    const userId = document.getElementById('userId').value;
+    const amount = document.getElementById('amount').value;
+    
+    if (!userId || !amount) {
+        alert('请填写完整信息');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('user_id', userId);
+    formData.append('amount', amount);
+    
+    fetch('/admin/lxmjdh/recharge-balance', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            document.getElementById('rechargeForm').reset();
+            location.reload(); // 刷新页面以显示最新余额
+        } else {
+            alert('充值失败: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('网络错误，请稍后重试');
+    });
+}
+
+function quickRecharge(userId, username) {
+    document.getElementById('quickUserId').value = userId;
+    document.getElementById('quickUsername').value = username;
+    document.getElementById('quickAmount').value = '';
+    
+    const modal = new bootstrap.Modal(document.getElementById('quickRechargeModal'));
+    modal.show();
+}
+
+function submitQuickRecharge() {
+    const userId = document.getElementById('quickUserId').value;
+    const amount = document.getElementById('quickAmount').value;
+    
+    if (!amount) {
+        alert('请输入充值金额');
+        return;
+    }
+    
+    const formData = new FormData();
+    formData.append('user_id', userId);
+    formData.append('amount', amount);
+    
+    fetch('/admin/lxmjdh/recharge-balance', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            bootstrap.Modal.getInstance(document.getElementById('quickRechargeModal')).hide();
+            location.reload(); // 刷新页面以显示最新余额
+        } else {
+            alert('充值失败: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('网络错误，请稍后重试');
+    });
+}
+</script>
+{% endblock %}

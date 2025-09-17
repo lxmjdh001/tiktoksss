@@ -1,0 +1,554 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<style>
+.recharge-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 17px;
+    display: flex;
+    gap: 20px;
+    align-items: stretch;
+}
+
+.amount-input {
+    font-size: 1.4rem;
+    text-align: center;
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    padding: 15px 20px;
+    margin: 20px 0;
+    background: #f8f9fa;
+    transition: all 0.3s ease;
+    font-weight: 600;
+    color: #495057;
+}
+
+.amount-input:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    background: white;
+    outline: none;
+}
+
+.payment-method {
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    padding: 15px 20px;
+    margin: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex: 1;
+    background: white;
+    position: relative;
+    overflow: hidden;
+}
+
+.payment-method::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.payment-method:hover::before {
+    left: 100%;
+}
+
+.payment-method:hover {
+    border-color: #667eea;
+    background-color: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.15);
+}
+
+.payment-method.selected {
+    border-color: #667eea;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.payment-method.selected label {
+    color: white;
+}
+
+.payment-method.selected .text-muted {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.payment-method input[type="radio"] {
+    margin-right: 10px;
+}
+
+.payment-icon {
+    font-size: 1.8rem;
+    margin-right: 15px;
+    transition: all 0.3s ease;
+}
+
+.payment-method:hover .payment-icon {
+    transform: scale(1.1);
+}
+
+.payment-method.selected .payment-icon {
+    color: white;
+    transform: scale(1.1);
+}
+
+.payment-methods-container {
+    display: flex;
+    gap: 15px;
+}
+
+.recharge-section .form-label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 12px;
+    font-size: 1rem;
+}
+
+.recharge-section .form-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-top: 8px;
+}
+
+.alipay-icon {
+    color: #1677ff;
+}
+
+.wechat-icon {
+    color: #07c160;
+}
+
+.btn-recharge {
+    width: 100%;
+    padding: 12.75px;
+    font-size: 1.02rem;
+    border-radius: 8.5px;
+}
+
+.quick-amount {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+    flex-wrap: wrap;
+}
+
+.quick-amount .btn {
+    flex: 1;
+    min-width: 80px;
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 10px 15px;
+    font-weight: 600;
+    color: #6c757d;
+    background: white;
+    transition: all 0.3s ease;
+}
+
+.quick-amount .btn:hover {
+    border-color: #667eea;
+    color: #667eea;
+    background: #f8f9fa;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.balance-info {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 12.75px;
+    padding: 12.75px;
+    margin-bottom: 25.5px;
+    text-align: center;
+}
+
+.balance-info h3 {
+    margin: 0;
+    font-size: 1.35rem;
+}
+
+.balance-info p {
+    margin: 5px 0 0 0;
+    opacity: 0.9;
+    font-size: 0.9rem;
+}
+
+.balance-section {
+    flex: 1;
+    max-width: 300px;
+    display: flex;
+    flex-direction: column;
+}
+
+.balance-info {
+    margin-bottom: 15px;
+}
+
+.user-info {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12.75px;
+    padding: 12.75px;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+.user-info h6 {
+    margin: 0 0 8px 0;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.user-info p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 0.8rem;
+}
+
+.recharge-records {
+    background: white;
+    border-radius: 12.75px;
+    padding: 12.75px;
+    border: 1px solid #e9ecef;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.recharge-records h6 {
+    margin: 0 0 10px 0;
+    color: #495057;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.record-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #f8f9fa;
+    font-size: 0.8rem;
+}
+
+.record-item:last-child {
+    border-bottom: none;
+}
+
+.record-amount {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.record-date {
+    color: #6c757d;
+}
+
+.no-records {
+    text-align: center;
+    color: #6c757d;
+    font-size: 0.8rem;
+    padding: 20px 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+.records-list {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.recharge-section {
+    flex: 2;
+    max-width: 600px;
+    display: flex;
+}
+
+.recharge-section .card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    overflow: hidden;
+}
+
+.recharge-section .card-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 20px 25px;
+    border-radius: 20px 20px 0 0;
+}
+
+.recharge-section .card-header h4 {
+    margin: 0;
+    font-weight: 600;
+    font-size: 1.3rem;
+}
+
+.recharge-section .card-header i {
+    margin-right: 10px;
+    font-size: 1.2rem;
+}
+
+.recharge-section .card-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 30px 25px;
+    background: white;
+}
+
+.recharge-section form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.recharge-section .mb-4:last-of-type {
+    margin-bottom: 0;
+}
+
+.recharge-section .btn-recharge {
+    margin-top: auto;
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    border-radius: 15px;
+    padding: 15px 25px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: white;
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.recharge-section .btn-recharge:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea080 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .recharge-container {
+        flex-direction: column;
+        max-width: 100%;
+        gap: 15px;
+    }
+    
+    .balance-section,
+    .recharge-section {
+        max-width: 100%;
+        flex: none;
+    }
+}
+</style>
+
+<div class="recharge-container">
+    <!-- 充值表单 -->
+    <div class="recharge-section">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="mb-0"><i class="fas fa-wallet"></i> 账户充值</h4>
+            </div>
+            <div class="card-body">
+                <form id="rechargeForm">
+                    <!-- 充值金额 -->
+                    <div class="mb-4">
+                        <label for="amount" class="form-label">充值金额</label>
+                        <input type="number" 
+                               class="form-control amount-input" 
+                               id="amount" 
+                               name="amount" 
+                               min="100" 
+                               max="10000" 
+                               step="1" 
+                               placeholder="请输入充值金额"
+                               required>
+                        <div class="form-text">最低充值金额：¥100，最高：¥10,000</div>
+                    </div>
+
+                    <!-- 快捷金额 -->
+                    <div class="mb-4">
+                        <label class="form-label">快捷金额</label>
+                        <div class="quick-amount">
+                            <button type="button" class="btn btn-outline-secondary" onclick="setAmount(100)">¥100</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setAmount(200)">¥200</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setAmount(500)">¥500</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setAmount(1000)">¥1000</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setAmount(2000)">¥2000</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="setAmount(5000)">¥5000</button>
+                        </div>
+                    </div>
+
+                    <!-- 支付方式 -->
+                    <div class="mb-4">
+                        <label class="form-label">选择支付方式</label>
+                        
+                        <div class="payment-methods-container">
+                            <div class="payment-method" onclick="selectPayment('alipay')">
+                                <input type="radio" name="payment_method" value="alipay" id="alipay" required>
+                                <label for="alipay" class="d-flex align-items-center">
+                                    <i class="fas fa-mobile-alt payment-icon alipay-icon"></i>
+                                    <div>
+                                        <div class="fw-bold">支付宝</div>
+                                        <small class="text-muted">支持花呗、余额宝</small>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <div class="payment-method" onclick="selectPayment('wechat')">
+                                <input type="radio" name="payment_method" value="wechat" id="wechat" required>
+                                <label for="wechat" class="d-flex align-items-center">
+                                    <i class="fab fa-weixin payment-icon wechat-icon"></i>
+                                    <div>
+                                        <div class="fw-bold">微信支付</div>
+                                        <small class="text-muted">支持微信零钱、银行卡</small>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <button type="submit" class="btn btn-primary btn-recharge">
+                        <i class="fas fa-credit-card"></i> 立即充值
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- 余额信息 -->
+    <div class="balance-section">
+        <div class="balance-info">
+            <h3>¥{{ "%.2f"|format(user.balance) }}</h3>
+            <p>当前账户余额</p>
+        </div>
+        
+        <!-- 用户信息 -->
+        <div class="user-info">
+            <h6><i class="fas fa-user"></i> 用户信息</h6>
+            <p>{{ user.email }}</p>
+        </div>
+        
+        <!-- 充值记录 -->
+        <div class="recharge-records">
+            <h6><i class="fas fa-history"></i> 最近充值</h6>
+            <div class="records-list">
+                {% if recent_recharges %}
+                    {% for recharge in recent_recharges[:5] %}
+                    <div class="record-item">
+                        <span class="record-amount">+¥{{ "%.2f"|format(recharge.amount) }}</span>
+                        <span class="record-date">{{ recharge.created_at.strftime('%m-%d %H:%M') }}</span>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="no-records">
+                        <i class="fas fa-inbox"></i><br>
+                        暂无充值记录
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// 设置充值金额
+function setAmount(amount) {
+    document.getElementById('amount').value = amount;
+}
+
+// 选择支付方式
+function selectPayment(method) {
+    // 移除所有选中状态
+    document.querySelectorAll('.payment-method').forEach(el => {
+        el.classList.remove('selected');
+    });
+    
+    // 添加选中状态
+    event.currentTarget.classList.add('selected');
+    
+    // 选中对应的radio
+    document.getElementById(method).checked = true;
+}
+
+// 表单提交
+document.getElementById('rechargeForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const amount = parseFloat(formData.get('amount'));
+    const paymentMethod = formData.get('payment_method');
+    
+    // 验证金额
+    if (amount < 100) {
+        alert('最低充值金额为100元');
+        return;
+    }
+    
+    if (amount > 10000) {
+        alert('单次充值金额不能超过10000元');
+        return;
+    }
+    
+    // 验证支付方式
+    if (!paymentMethod) {
+        alert('请选择支付方式');
+        return;
+    }
+    
+    // 确认充值
+    if (!confirm(`确认充值 ¥${amount} 到账户余额？`)) {
+        return;
+    }
+    
+    try {
+        const response = await fetch('/recharge/submit', {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            alert(result.message);
+            // 更新页面余额显示
+            location.reload();
+        } else {
+            alert(result.message);
+        }
+    } catch (error) {
+        alert('充值失败，请重试');
+        console.error('充值错误:', error);
+    }
+});
+
+// 页面加载时自动选中第一个支付方式
+document.addEventListener('DOMContentLoaded', function() {
+    const firstPayment = document.querySelector('.payment-method');
+    if (firstPayment) {
+        firstPayment.classList.add('selected');
+        firstPayment.querySelector('input[type="radio"]').checked = true;
+    }
+});
+</script>
+{% endblock %}

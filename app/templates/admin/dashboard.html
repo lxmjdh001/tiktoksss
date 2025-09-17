@@ -1,0 +1,1808 @@
+{% extends "base.html" %}
+
+{% block title %}控制台 - {{ title }}{% endblock %}
+
+{% block content %}
+<style>
+/* 用户信息模块 - 现代化设计 */
+.user-info-section {
+    font-size: calc(0.85em + 2px);
+}
+
+.user-info-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.user-info-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 16px 25px;
+}
+
+.user-avatar {
+    margin-right: 15px;
+}
+
+.user-avatar i {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.user-title h5 {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.user-title small {
+    color: white;
+    font-size: 1rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.user-info-body {
+    padding: 25px;
+    background: white;
+}
+
+.info-section {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    height: 100%;
+    border: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.info-section:hover {
+    border-color: #e0e0e0;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.info-section-title {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+    font-size: calc(0.9em + 2px);
+}
+
+.info-section-title i {
+    margin-right: 8px;
+    color: #667eea;
+}
+
+.info-item {
+    margin-bottom: 12px;
+    padding: 8px 0;
+}
+
+.info-label {
+    font-size: calc(0.8em + 2px);
+    color: #666;
+    margin-bottom: 4px;
+    font-weight: 500;
+}
+
+.info-value {
+    font-size: calc(0.9em + 2px);
+    color: #333;
+    font-weight: 600;
+}
+
+.member-badge {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: calc(0.8em + 2px);
+    font-weight: 500;
+}
+
+/* 邀请码样式 */
+.invite-code-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.invite-code {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 1px;
+    border: none;
+    box-shadow: 0 2px 4px rgba(102, 126, 234, 0.3);
+}
+
+.btn-copy {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    color: #6c757d;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: all 0.3s ease;
+}
+
+.btn-copy:hover {
+    background: #e9ecef;
+    color: #495057;
+    border-color: #adb5bd;
+}
+
+.btn-copy:active {
+    transform: scale(0.95);
+}
+
+.balance-item {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 15px;
+}
+
+.balance-value {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.balance-amount {
+    font-size: calc(1.2em + 2px);
+    color: #28a745;
+    font-weight: 700;
+}
+
+.btn-recharge {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: calc(0.8em + 2px);
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.btn-recharge:hover {
+    background: linear-gradient(135deg, #218838 0%, #1ea080 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+}
+
+.cashback-value {
+    color: #17a2b8;
+    font-weight: 600;
+}
+
+.order-list {
+    margin-top: 10px;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.3s ease;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.order-item:hover {
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
+.order-info {
+    flex: 1;
+}
+
+.order-service {
+    font-size: calc(0.9em + 2px);
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.order-details {
+    display: flex;
+    gap: 10px;
+    font-size: calc(0.8em + 2px);
+    color: #666;
+}
+
+.order-quantity {
+    color: #667eea;
+    font-weight: 500;
+}
+
+.order-price {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.order-status {
+    margin-left: 10px;
+}
+
+.order-more {
+    text-align: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.no-orders {
+    text-align: center;
+    padding: 30px 20px;
+    color: #999;
+}
+
+.no-orders i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    opacity: 0.5;
+}
+
+.no-orders p {
+    margin: 0;
+    font-size: calc(0.9em + 2px);
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .user-info-header {
+        padding: 12px 20px;
+    }
+    
+    .user-info-body {
+        padding: 20px 15px;
+    }
+    
+    .info-section {
+        padding: 15px;
+        margin-bottom: 15px;
+    }
+    
+    .balance-value {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .order-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .order-status {
+        margin-left: 0;
+        align-self: flex-end;
+    }
+    
+    .services-header {
+        padding: 12px 20px;
+    }
+    
+    .services-body {
+        padding: 20px 15px;
+    }
+    
+    .platform-tabs {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .platform-tab {
+        width: 100%;
+        justify-content: center;
+    }
+    
+}
+
+/* 服务模块 - 现代化设计 */
+.services-section {
+    font-size: calc(0.85em + 2px);
+}
+
+.services-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+}
+
+.services-header {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    border: none;
+    padding: 16px 25px;
+}
+
+.services-icon {
+    margin-right: 15px;
+}
+
+.services-icon i {
+    font-size: 2.5rem;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.services-title h5 {
+    color: white;
+    font-weight: 600;
+    margin-bottom: 2px;
+}
+
+.services-title small {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.85rem;
+}
+
+.services-body {
+    padding: 25px;
+    background: white;
+}
+
+.platform-tabs-container {
+    margin-bottom: 20px;
+}
+
+.platform-tabs {
+    border: none;
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 5px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.platform-tab {
+    border: none !important;
+    background: transparent !important;
+    color: #666 !important;
+    border-radius: 8px !important;
+    padding: 10px 15px !important;
+    font-size: calc(0.9em + 2px);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.platform-tab:hover {
+    background: white !important;
+    color: #333 !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.platform-tab.active {
+    background: white !important;
+    color: #28a745 !important;
+    box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+}
+
+.platform-tab i {
+    font-size: 1.1em;
+}
+
+.services-section .table {
+    font-size: calc(0.9em + 2px);
+}
+
+.services-section .btn {
+    font-size: calc(0.9em + 2px);
+    padding: 0.4rem 0.8rem;
+}
+
+/* 下单按钮样式 */
+.services-section .btn-primary {
+    position: relative;
+}
+
+.services-section .btn-primary .btn-text {
+    display: inline;
+}
+
+.services-section .btn-primary .btn-icon {
+    margin-right: 4px;
+}
+
+/* 手机端只显示图标 */
+@media (max-width: 768px) {
+    .services-section .btn-primary .btn-text {
+        display: none;
+    }
+    
+    .services-section .btn-primary .btn-icon {
+        margin-right: 0;
+    }
+    
+    .services-section .btn-primary {
+        padding: 0.4rem 0.6rem;
+        min-width: 40px;
+    }
+}
+
+
+/* 确保抽屉弹窗不受影响 */
+.drawer-overlay {
+    transform: none !important;
+    z-index: 1055 !important;
+}
+
+.drawer {
+    transform: none !important;
+}
+</style>
+
+<div class="d-flex justify-content-end align-items-center mb-4">
+    <div class="text-muted">
+        欢迎回来，<strong>{{ user.username }}</strong>！
+    </div>
+</div>
+
+
+<!-- 用户信息卡片 -->
+<div class="row user-info-section">
+    <div class="col-12">
+        <div class="card user-info-card">
+            <div class="card-header user-info-header">
+                <div class="d-flex align-items-center">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="user-title">
+                        <h5 class="mb-0">用户信息</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body user-info-body">
+                <div class="row">
+                    <!-- 基本信息 -->
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="info-section">
+                            <h6 class="info-section-title">
+                                <i class="fas fa-id-card"></i> 基本信息
+                            </h6>
+                            <div class="info-item">
+                                <div class="info-label">用户名</div>
+                                <div class="info-value">{{ user.username }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">邮箱</div>
+                                <div class="info-value">{{ user.email }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">会员等级</div>
+                                <div class="info-value">
+                                    <span class="member-badge">{{ member_level_info.name }}</span>
+                                </div>
+                            </div>
+                            {% if user.invite_code %}
+                            <div class="info-item">
+                                <div class="info-label">我的邀请码</div>
+                                <div class="info-value">
+                                    <div class="invite-code-container">
+                                        <code class="invite-code">{{ user.invite_code }}</code>
+                                        <button class="btn btn-sm btn-copy" onclick="copyInviteCode()" title="复制邀请码">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- 财务信息 -->
+                    <div class="col-lg-4 col-md-6 mb-4">
+                        <div class="info-section">
+                            <h6 class="info-section-title">
+                                <i class="fas fa-wallet"></i> 财务信息
+                            </h6>
+                            <div class="info-item balance-item">
+                                <div class="info-label">账户余额</div>
+                                <div class="info-value balance-value">
+                                    <span class="balance-amount">¥{{ "%.2f"|format(user.balance) }}</span>
+                                    <button class="btn btn-sm btn-recharge" onclick="goToRecharge()">
+                                        <i class="fas fa-plus"></i> 充值
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">总消费</div>
+                                <div class="info-value">¥{{ "%.2f"|format(user.total_consumed) }}</div>
+                            </div>
+                            <div class="info-item">
+                                <div class="info-label">总返现</div>
+                                <div class="info-value cashback-value">¥{{ "%.2f"|format(user.total_cashback) }}</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 订单记录 -->
+                    <div class="col-lg-4 col-md-12 mb-4">
+                        <div class="info-section">
+                            <h6 class="info-section-title">
+                                <i class="fas fa-list-alt"></i> 最近订单
+                            </h6>
+                            <div class="order-list">
+                                {% if recent_orders %}
+                                    {% for order in recent_orders[:3] %}
+                                    <div class="order-item">
+                                        <div class="order-info">
+                                            <div class="order-service">{{ order.service_name }}</div>
+                                            <div class="order-details">
+                                                <span class="order-quantity">{{ order.quantity }}个</span>
+                                                <span class="order-price">¥{{ "%.2f"|format(order.charge) }}</span>
+                                            </div>
+                                        </div>
+                                        <div class="order-status">
+                                            {% if order.status == 'pending' %}
+                                                <span class="badge bg-warning">待处理</span>
+                                            {% elif order.status == 'completed' %}
+                                                <span class="badge bg-success">已完成</span>
+                                            {% elif order.status == 'processing' %}
+                                                <span class="badge bg-info">处理中</span>
+                                            {% else %}
+                                                <span class="badge bg-secondary">{{ order.status }}</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                    <div class="order-more">
+                                        <a href="/admin/orders" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i> 查看全部
+                                        </a>
+                                    </div>
+                                {% else %}
+                                    <div class="no-orders">
+                                        <i class="fas fa-inbox"></i>
+                                        <p>暂无订单记录</p>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+    
+<!-- 服务列表 -->
+<div class="row mt-4 services-section">
+    <div class="col-12">
+        <div class="card services-card">
+            <div class="card-header services-header">
+                <div class="d-flex align-items-center">
+                    <div class="services-icon">
+                        <i class="fas fa-rocket"></i>
+                    </div>
+                    <div class="services-title">
+                        <h5 class="mb-0">可用服务</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body services-body">
+                <!-- 选项卡导航 -->
+                <div class="platform-tabs-container">
+                    <ul class="nav nav-pills platform-tabs" id="platformTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active platform-tab" id="douyin-tab" data-bs-toggle="tab" data-bs-target="#douyin" type="button" role="tab" aria-controls="douyin" aria-selected="true">
+                                <i class="fab fa-tiktok"></i>
+                                <span>抖音</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link platform-tab" id="xiaoshou-tab" data-bs-toggle="tab" data-bs-target="#xiaoshou" type="button" role="tab" aria-controls="xiaoshou" aria-selected="false">
+                                <i class="fas fa-hand-paper"></i>
+                                <span>快手</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link platform-tab" id="hudie-tab" data-bs-toggle="tab" data-bs-target="#hudie" type="button" role="tab" aria-controls="hudie" aria-selected="false">
+                                <i class="fab fa-weixin"></i>
+                                <span>微信</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link platform-tab" id="weibo-tab" data-bs-toggle="tab" data-bs-target="#weibo" type="button" role="tab" aria-controls="weibo" aria-selected="false">
+                                <i class="fab fa-weibo"></i>
+                                <span>微博</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link platform-tab" id="xiaohongshu-tab" data-bs-toggle="tab" data-bs-target="#xiaohongshu" type="button" role="tab" aria-controls="xiaohongshu" aria-selected="false">
+                                <i class="fas fa-heart"></i>
+                                <span>小红薯</span>
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link platform-tab" id="meituan-tab" data-bs-toggle="tab" data-bs-target="#meituan" type="button" role="tab" aria-controls="meituan" aria-selected="false">
+                                <i class="fas fa-utensils"></i>
+                                <span>美团</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                
+                <!-- 选项卡内容 -->
+                <div class="tab-content" id="platformTabsContent">
+                    <!-- 抖音 -->
+                    <div class="tab-pane fade show active" id="douyin" role="tabpanel" aria-labelledby="douyin-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>服务ID</th>
+                                        <th>服务名称</th>
+                                        <th>价格</th>
+                                        <th>数量</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for service in services.douyin %}
+                                    <tr>
+                                        <td>{{ service.id }}</td>
+                                        <td>
+                                            {{ service.name }}
+                                            <span class="badge bg-primary ms-2">高质量</span>
+                                        </td>
+                                        <td>¥{{ "%.2f"|format(service.price) }}</td>
+                                        <td>1000</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="orderService({{ service.id }})">
+                                                <i class="fas fa-shopping-cart btn-icon"></i>
+                                                <span class="btn-text">下单</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">暂无服务</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- 其他平台选项卡内容（结构相同，只是数据源不同） -->
+                    <div class="tab-pane fade" id="xiaoshou" role="tabpanel" aria-labelledby="xiaoshou-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>服务ID</th>
+                                        <th>服务名称</th>
+                                        <th>价格</th>
+                                        <th>数量</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for service in services.xiaoshou %}
+                                    <tr>
+                                        <td>{{ service.id }}</td>
+                                        <td>
+                                            {{ service.name }}
+                                            <span class="badge bg-primary ms-2">高质量</span>
+                                        </td>
+                                        <td>¥{{ "%.2f"|format(service.price) }}</td>
+                                        <td>1000</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="orderService({{ service.id }})">
+                                                <i class="fas fa-shopping-cart btn-icon"></i>
+                                                <span class="btn-text">下单</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">暂无服务</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- 微信服务 -->
+                    <div class="tab-pane fade" id="hudie" role="tabpanel" aria-labelledby="hudie-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>服务ID</th>
+                                        <th>服务名称</th>
+                                        <th>价格</th>
+                                        <th>数量</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for service in services.hudie %}
+                                    <tr>
+                                        <td>{{ service.id }}</td>
+                                        <td>
+                                            {{ service.name }}
+                                            <span class="badge bg-primary ms-2">高质量</span>
+                                        </td>
+                                        <td>¥{{ "%.2f"|format(service.price) }}</td>
+                                        <td>1000</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="orderService({{ service.id }})">
+                                                <i class="fas fa-shopping-cart btn-icon"></i>
+                                                <span class="btn-text">下单</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">暂无微信服务</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <!-- 微博服务 -->
+                    <div class="tab-pane fade" id="weibo" role="tabpanel" aria-labelledby="weibo-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>服务ID</th>
+                                        <th>服务名称</th>
+                                        <th>价格</th>
+                                        <th>数量</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for service in services.weibo %}
+                                    <tr>
+                                        <td>{{ service.id }}</td>
+                                        <td>
+                                            {{ service.name }}
+                                            <span class="badge bg-primary ms-2">高质量</span>
+                                        </td>
+                                        <td>¥{{ "%.2f"|format(service.price) }}</td>
+                                        <td>1000</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="orderService({{ service.id }})">
+                                                <i class="fas fa-shopping-cart btn-icon"></i>
+                                                <span class="btn-text">下单</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">暂无微博服务</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    
+
+                    <!-- 小红薯服务 -->
+                    <div class="tab-pane fade" id="xiaohongshu" role="tabpanel" aria-labelledby="xiaohongshu-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>服务ID</th>
+                                        <th>服务名称</th>
+                                        <th>价格</th>
+                                        <th>数量</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for service in services.xiaohongshu %}
+                                    <tr>
+                                        <td>{{ service.id }}</td>
+                                        <td>
+                                            {{ service.name }}
+                                            <span class="badge bg-primary ms-2">高质量</span>
+                                        </td>
+                                        <td>¥{{ "%.2f"|format(service.price) }}</td>
+                                        <td>1000</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="orderService({{ service.id }})">
+                                                <i class="fas fa-shopping-cart btn-icon"></i>
+                                                <span class="btn-text">下单</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">暂无小红薯服务</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="tab-pane fade" id="meituan" role="tabpanel" aria-labelledby="meituan-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>服务ID</th>
+                                        <th>服务名称</th>
+                                        <th>价格</th>
+                                        <th>数量</th>
+                                        <th>操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for service in services.meituan %}
+                                    <tr>
+                                        <td>{{ service.id }}</td>
+                                        <td>
+                                            {{ service.name }}
+                                            <span class="badge bg-primary ms-2">高质量</span>
+                                        </td>
+                                        <td>¥{{ "%.2f"|format(service.price) }}</td>
+                                        <td>1000</td>
+                                        <td>
+                                            <button class="btn btn-sm btn-primary" onclick="orderService({{ service.id }})">
+                                                <i class="fas fa-shopping-cart btn-icon"></i>
+                                                <span class="btn-text">下单</span>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">暂无美团服务</td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 使用说明 -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <div class="d-flex align-items-center">
+                    <div class="me-3">
+                        <i class="fas fa-info-circle fa-2x"></i>
+                    </div>
+                    <div>
+                        <h5 class="mb-0">使用说明</h5>
+                        <small class="opacity-75">请仔细阅读以下使用规则</small>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="usage-item mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="usage-number me-3">
+                                    <span class="badge bg-primary rounded-circle">1</span>
+                                </div>
+                                <div class="usage-content">
+                                    <h6 class="mb-1">播放量说明</h6>
+                                    <p class="mb-0 text-muted">要刷更大数量的请选择下单份数即可；作品链接下单（分享作品-复制链接），填写口令会导致自动退单！</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="usage-item mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="usage-number me-3">
+                                    <span class="badge bg-warning rounded-circle">2</span>
+                                </div>
+                                <div class="usage-content">
+                                    <h6 class="mb-1">作品要求</h6>
+                                    <p class="mb-0 text-muted">作品不能设置私密。刚发布的作品请等审核通过后30分钟再下单，避免作品被审核删除情况！</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="usage-item mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="usage-number me-3">
+                                    <span class="badge bg-success rounded-circle">3</span>
+                                </div>
+                                <div class="usage-content">
+                                    <h6 class="mb-1">到账时间</h6>
+                                    <p class="mb-0 text-muted">根据单天情况进行订单，下单了请耐心等待！正常秒到。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="usage-item mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="usage-number me-3">
+                                    <span class="badge bg-info rounded-circle">4</span>
+                                </div>
+                                <div class="usage-content">
+                                    <h6 class="mb-1">重复下单限制</h6>
+                                    <p class="mb-0 text-muted">同一链接禁止在订单状态未显示完成之前再次下单。等待第一个订单完成，然后为同一链接下新订单。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="usage-item mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="usage-number me-3">
+                                    <span class="badge bg-danger rounded-circle">5</span>
+                                </div>
+                                <div class="usage-content">
+                                    <h6 class="mb-1">数量叠加限制</h6>
+                                    <p class="mb-0 text-muted">同一个链接同时购买多个拉人上粉项目数量不会叠加且不退款。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="usage-item mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="usage-number me-3">
+                                    <span class="badge bg-secondary rounded-circle">6</span>
+                                </div>
+                                <div class="usage-content">
+                                    <h6 class="mb-1">链接更改规则</h6>
+                                    <p class="mb-0 text-muted">下单后订单未完成禁止更改链接，更改链接=订单完成。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="usage-item mb-3">
+                            <div class="d-flex align-items-start">
+                                <div class="usage-number me-3">
+                                    <span class="badge bg-dark rounded-circle">7</span>
+                                </div>
+                                <div class="usage-content">
+                                    <h6 class="mb-1">订单延迟处理</h6>
+                                    <p class="mb-0 text-muted">订单如果出现延迟请耐心等待。</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 抽屉弹窗 -->
+<div class="drawer-overlay" id="drawerOverlay" style="display: none;">
+    <div class="drawer" id="orderDrawer">
+        <div class="drawer-header">
+            <div class="order-type-toggle">
+                <button type="button" class="btn btn-outline-primary active" id="fixedOrderBtn" onclick="switchOrderType('fixed')">固定下单</button>
+                <button type="button" class="btn btn-outline-secondary" id="batchOrderBtn" onclick="switchOrderType('batch')">批量下单</button>
+            </div>
+            <button type="button" class="btn-close" onclick="closeDrawer()">×</button>
+        </div>
+        <div class="drawer-body">
+            <form id="orderForm">
+                <div class="mb-3">
+                    <label for="serviceName" class="form-label">服务名称</label>
+                    <input type="text" class="form-control" id="serviceName" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="servicePrice" class="form-label">单价</label>
+                    <input type="text" class="form-control" id="servicePrice" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="orderLink" class="form-label">链接 <span class="text-danger">*</span></label>
+                    <input type="url" class="form-control" id="orderLink" placeholder="请输入要推广的链接" required>
+                </div>
+                <div class="mb-3">
+                    <label for="orderQuantity" class="form-label">数量 <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="orderQuantity" min="1" value="1" step="1" required>
+                    <div class="form-text">数量：<span id="quantityRange">1000</span></div>
+                </div>
+                <div class="mb-3" id="commentsSection" style="display: none;">
+                    <label for="orderComments" class="form-label">评论内容 <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="orderComments" rows="5" placeholder="请按照以下格式填写评论内容：&#10;第一行：这个作品真的好看&#10;第二行：1&#10;第三行：1&#10;第四行：1&#10;第五行：1&#10;&#10;说明：每行代表一个评论者的评论内容，第一行是具体评论，其他行填写1表示按照第一行意思用不同语言评论"></textarea>
+                    <div class="form-text">
+                        <strong>抖音真人评论格式说明：</strong><br>
+                        • 第一行：具体评论内容（如：这个作品真的好看）<br>
+                        • 第二行及以后：填写"1"表示按照第一行意思用不同语言评论<br>
+                        • 每行代表一个评论者，最多支持多个评论者<br>
+                        • 如果每行都填写具体内容，则完全按照你的留言去评论
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="orderTotal" class="form-label">总价</label>
+                    <input type="text" class="form-control" id="orderTotal" readonly>
+                </div>
+            </form>
+        </div>
+        <div class="drawer-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDrawer()">取消</button>
+            <button type="button" class="btn btn-primary" onclick="submitOrder()">确认下单</button>
+        </div>
+    </div>
+</div>
+
+<!-- 真人评论服务下单抽屉 -->
+<div class="drawer-overlay" id="commentDrawerOverlay" style="display: none;">
+    <div class="drawer" id="commentOrderDrawer">
+        <div class="drawer-header">
+            <div class="order-type-toggle">
+                <button type="button" class="btn btn-outline-primary active" id="commentFixedOrderBtn" onclick="switchCommentOrderType('fixed')">固定下单</button>
+                <button type="button" class="btn btn-outline-secondary" id="commentBatchOrderBtn" onclick="switchCommentOrderType('batch')">批量下单</button>
+            </div>
+            <button type="button" class="btn-close" onclick="closeCommentDrawer()">×</button>
+        </div>
+        <div class="drawer-body">
+            <form id="commentOrderForm">
+                <div class="mb-3">
+                    <label for="commentServiceName" class="form-label">服务名称</label>
+                    <input type="text" class="form-control" id="commentServiceName" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="commentServicePrice" class="form-label">单价</label>
+                    <input type="text" class="form-control" id="commentServicePrice" readonly>
+                </div>
+                <div class="mb-3">
+                    <label for="commentOrderLink" class="form-label">作品链接 <span class="text-danger">*</span></label>
+                    <input type="url" class="form-control" id="commentOrderLink" placeholder="请输入抖音作品链接" required>
+                </div>
+                <div class="mb-3">
+                    <label for="commentOrderQuantity" class="form-label">评论数量 <span class="text-danger">*</span></label>
+                    <input type="number" class="form-control" id="commentOrderQuantity" min="1" value="5" step="1" required>
+                    <div class="form-text">数量：<span id="commentQuantityRange">1000</span></div>
+                </div>
+                <div class="mb-3">
+                    <label for="commentOrderComments" class="form-label">评论内容 <span class="text-danger">*</span></label>
+                    <textarea class="form-control" id="commentOrderComments" rows="5" placeholder="请按照以下格式填写评论内容：&#10;第一行：这个作品真的好看&#10;第二行：1&#10;第三行：1&#10;第四行：1&#10;第五行：1&#10;&#10;说明：每行代表一个评论者的评论内容，第一行是具体评论，其他行填写1表示按照第一行意思用不同语言评论" required></textarea>
+                    <div class="form-text">
+                        <strong>抖音真人评论格式说明：</strong><br>
+                        • 第一行：具体评论内容（如：这个作品真的好看）<br>
+                        • 第二行及以后：填写"1"表示按照第一行意思用不同语言评论<br>
+                        • 每行代表一个评论者，最多支持多个评论者<br>
+                        • 如果每行都填写具体内容，则完全按照你的留言去评论
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label for="commentOrderTotal" class="form-label">总价</label>
+                    <input type="text" class="form-control" id="commentOrderTotal" readonly>
+                </div>
+            </form>
+        </div>
+        <div class="drawer-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeCommentDrawer()">取消</button>
+            <button type="button" class="btn btn-primary" onclick="submitCommentOrder()">确认下单</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1050;
+    display: flex;
+    justify-content: flex-end;
+    align-items: stretch;
+}
+
+.drawer {
+    width: 500px;
+    max-width: 90vw;
+    background: white;
+    box-shadow: -5px 0 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+}
+
+.drawer.show {
+    transform: translateX(0);
+}
+
+.drawer-header {
+    padding: 20px;
+    border-bottom: 1px solid #e9ecef;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.order-type-toggle {
+    display: flex;
+    gap: 8px;
+}
+
+.order-type-toggle .btn {
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s ease;
+    min-width: 100px;
+}
+
+.order-type-toggle .btn.active {
+    background-color: #007bff;
+    border-color: #007bff;
+    color: white;
+}
+
+.order-type-toggle .btn:not(.active) {
+    background-color: transparent;
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.order-type-toggle .btn:not(.active):hover {
+    background-color: #f8f9fa;
+    border-color: #6c757d;
+    color: #6c757d;
+}
+
+.drawer-body {
+    padding: 20px;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.drawer-footer {
+    padding: 20px;
+    border-top: 1px solid #e9ecef;
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.btn-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #6c757d;
+    cursor: pointer;
+    padding: 0;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.btn-close:hover {
+    color: #000;
+    background-color: #f8f9fa;
+}
+
+/* 使用说明样式 */
+.usage-item {
+    transition: all 0.3s ease;
+}
+
+.usage-item:hover {
+    transform: translateY(-2px);
+}
+
+.usage-number .badge {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.usage-content h6 {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.usage-content p {
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+    .usage-item {
+        margin-bottom: 20px !important;
+    }
+    
+    .usage-number .badge {
+        width: 28px;
+        height: 28px;
+        font-size: 12px;
+    }
+    
+    .usage-content h6 {
+        font-size: 14px;
+    }
+    
+    .usage-content p {
+        font-size: 13px;
+    }
+}
+</style>
+
+<script>
+let currentService = null;
+let currentOrderType = 'fixed'; // 默认固定下单
+
+function switchOrderType(type) {
+    currentOrderType = type;
+    
+    // 更新按钮状态
+    const fixedBtn = document.getElementById('fixedOrderBtn');
+    const batchBtn = document.getElementById('batchOrderBtn');
+    
+    if (type === 'fixed') {
+        fixedBtn.classList.remove('btn-outline-secondary');
+        fixedBtn.classList.add('btn-outline-primary', 'active');
+        batchBtn.classList.remove('btn-outline-primary', 'active');
+        batchBtn.classList.add('btn-outline-secondary');
+    } else {
+        batchBtn.classList.remove('btn-outline-secondary');
+        batchBtn.classList.add('btn-outline-primary', 'active');
+        fixedBtn.classList.remove('btn-outline-primary', 'active');
+        fixedBtn.classList.add('btn-outline-secondary');
+    }
+    
+    // 根据下单类型调整表单
+    updateFormForOrderType();
+}
+
+function updateFormForOrderType() {
+    const quantityField = document.getElementById('orderQuantity');
+    const quantityLabel = document.querySelector('label[for="orderQuantity"]');
+    const quantityHelp = document.querySelector('#orderQuantity').nextElementSibling;
+    const quantityRange = document.getElementById('quantityRange');
+    
+    if (currentOrderType === 'fixed') {
+        // 固定下单：数量固定为1
+        quantityField.value = 1;
+        quantityField.readOnly = true;
+        quantityField.style.backgroundColor = '#f8f9fa';
+        quantityLabel.innerHTML = '数量 <span class="text-danger">*</span> <small class="text-muted">(固定下单)</small>';
+        quantityHelp.innerHTML = '固定下单数量为1';
+    } else {
+        // 批量下单：允许调整数量
+        quantityField.readOnly = false;
+        quantityField.style.backgroundColor = '';
+        quantityLabel.innerHTML = '数量 <span class="text-danger">*</span> <small class="text-muted">(批量下单)</small>';
+        // 使用innerHTML来保持span标签，让动态更新能正常工作
+        // API以1000为单位，所以显示值 = 输入值 * 1000
+        const displayValue = (parseInt(quantityField.value) || 1) * 1000;
+        quantityHelp.innerHTML = '数量：<span id="quantityRange">' + displayValue + '</span>';
+    }
+    
+    calculateTotal();
+}
+
+function orderService(serviceId) {
+    // 找到对应的服务数据
+    const services = {{ services | tojson }};
+    let service = null;
+    
+    for (const platform in services) {
+        service = services[platform].find(s => s.id === serviceId);
+        if (service) break;
+    }
+    
+    if (!service) {
+        alert('服务不存在');
+        return;
+    }
+    
+    // 检查是否为真人评论服务
+    const isRealCommentService = service.name.includes('真人评论');
+    
+    if (isRealCommentService) {
+        // 使用真人评论弹窗
+        orderCommentService(serviceId);
+    } else {
+        // 使用普通弹窗
+        orderNormalService(serviceId);
+    }
+}
+
+function orderNormalService(serviceId) {
+    // 找到对应的服务数据
+    const services = {{ services | tojson }};
+    let service = null;
+    
+    for (const platform in services) {
+        service = services[platform].find(s => s.id === serviceId);
+        if (service) break;
+    }
+    
+    if (!service) {
+        alert('服务不存在');
+        return;
+    }
+    
+    currentService = service;
+    
+    // 填充表单数据
+    document.getElementById('serviceName').value = service.name;
+    document.getElementById('servicePrice').value = '¥' + service.price.toFixed(2);
+    // 不在这里设置quantityRange，让用户输入时动态更新
+    document.getElementById('orderQuantity').min = service.min_quantity;
+    document.getElementById('orderQuantity').max = service.max_quantity;
+    document.getElementById('orderQuantity').step = 1;
+    // 设置初始值为1（代表1000个）
+    document.getElementById('orderQuantity').value = 1;
+    // 更新数量提示显示 - API以1000为单位
+    document.getElementById('quantityRange').textContent = '1000';
+    
+    // 初始化下单类型
+    currentOrderType = 'fixed';
+    switchOrderType('fixed');
+    
+    // 计算总价
+    calculateTotal();
+    
+    // 显示抽屉
+    document.getElementById('drawerOverlay').style.display = 'flex';
+    setTimeout(() => {
+        document.getElementById('orderDrawer').classList.add('show');
+    }, 10);
+}
+
+function orderCommentService(serviceId) {
+    // 找到对应的服务数据
+    const services = {{ services | tojson }};
+    let service = null;
+    
+    for (const platform in services) {
+        service = services[platform].find(s => s.id === serviceId);
+        if (service) break;
+    }
+    
+    if (!service) {
+        alert('服务不存在');
+        return;
+    }
+    
+    currentService = service;
+    
+    // 填充表单数据
+    document.getElementById('commentServiceName').value = service.name;
+    document.getElementById('commentServicePrice').value = '¥' + service.price.toFixed(2);
+    document.getElementById('commentQuantityRange').textContent = '1000';
+    document.getElementById('commentOrderQuantity').min = service.min_quantity;
+    document.getElementById('commentOrderQuantity').max = service.max_quantity;
+    document.getElementById('commentOrderQuantity').value = Math.max(service.min_quantity, 5); // 默认5个评论
+    document.getElementById('commentQuantityRange').textContent = Math.max(service.min_quantity, 5);
+    
+    // 清空评论内容
+    document.getElementById('commentOrderComments').value = '';
+    
+    // 初始化下单类型
+    currentOrderType = 'fixed';
+    switchCommentOrderType('fixed');
+    
+    // 计算总价
+    calculateCommentTotal();
+    
+    // 显示抽屉
+    document.getElementById('commentDrawerOverlay').style.display = 'flex';
+    setTimeout(() => {
+        document.getElementById('commentOrderDrawer').classList.add('show');
+    }, 10);
+}
+
+function closeDrawer() {
+    document.getElementById('orderDrawer').classList.remove('show');
+    setTimeout(() => {
+        document.getElementById('drawerOverlay').style.display = 'none';
+        currentService = null;
+    }, 300);
+}
+
+function closeCommentDrawer() {
+    document.getElementById('commentOrderDrawer').classList.remove('show');
+    setTimeout(() => {
+        document.getElementById('commentDrawerOverlay').style.display = 'none';
+        currentService = null;
+    }, 300);
+}
+
+function switchCommentOrderType(type) {
+    currentOrderType = type;
+    
+    // 更新按钮状态
+    const fixedBtn = document.getElementById('commentFixedOrderBtn');
+    const batchBtn = document.getElementById('commentBatchOrderBtn');
+    
+    if (type === 'fixed') {
+        fixedBtn.classList.remove('btn-outline-secondary');
+        fixedBtn.classList.add('btn-outline-primary', 'active');
+        batchBtn.classList.remove('btn-outline-primary', 'active');
+        batchBtn.classList.add('btn-outline-secondary');
+    } else {
+        batchBtn.classList.remove('btn-outline-secondary');
+        batchBtn.classList.add('btn-outline-primary', 'active');
+        fixedBtn.classList.remove('btn-outline-primary', 'active');
+        fixedBtn.classList.add('btn-outline-secondary');
+    }
+    
+    calculateCommentTotal();
+}
+
+function calculateCommentTotal() {
+    if (!currentService) return;
+    
+    const quantity = parseInt(document.getElementById('commentOrderQuantity').value) || 0;
+    const total = quantity * currentService.price;
+    document.getElementById('commentOrderTotal').value = '¥' + total.toFixed(2);
+}
+
+function calculateTotal() {
+    if (!currentService) return;
+    
+    const quantity = parseInt(document.getElementById('orderQuantity').value) || 0;
+    const total = quantity * currentService.price;
+    document.getElementById('orderTotal').value = '¥' + total.toFixed(2);
+}
+
+async function submitOrder() {
+    const link = document.getElementById('orderLink').value;
+    const quantity = document.getElementById('orderQuantity').value;
+    
+    if (!link) {
+        alert('请输入链接');
+        return;
+    }
+    
+    if (!quantity || quantity < currentService.min_quantity || quantity > currentService.max_quantity) {
+        alert('数量超出范围');
+        return;
+    }
+    
+    // 显示加载状态
+    const submitBtn = document.querySelector('.drawer-footer .btn-primary');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = '提交中...';
+    submitBtn.disabled = true;
+    
+    try {
+        // 发送订单数据到后端API
+        const response = await fetch('/api/orders/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                service_id: currentService.id,
+                link: link,
+                quantity: parseInt(quantity),
+                order_type: currentOrderType,
+                comments: null
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            const orderTypeText = currentOrderType === 'fixed' ? '固定下单' : '批量下单';
+            alert(`${orderTypeText}提交成功！\n订单ID: ${result.order_id || 'N/A'}`);
+            closeDrawer();
+        } else {
+            alert('订单提交失败: ' + result.message);
+        }
+        
+    } catch (error) {
+        console.error('提交订单失败:', error);
+        alert('网络错误，请稍后重试');
+    } finally {
+        // 恢复按钮状态
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+async function submitCommentOrder() {
+    const link = document.getElementById('commentOrderLink').value;
+    const quantity = document.getElementById('commentOrderQuantity').value;
+    const comments = document.getElementById('commentOrderComments').value;
+    
+    if (!link) {
+        alert('请输入作品链接');
+        return;
+    }
+    
+    if (!quantity || quantity < currentService.min_quantity || quantity > currentService.max_quantity) {
+        alert('评论数量超出范围');
+        return;
+    }
+    
+    if (!comments.trim()) {
+        alert('真人评论服务需要填写评论内容');
+        return;
+    }
+    
+    // 验证评论格式（至少要有第一行）
+    const commentLines = comments.trim().split('\n').filter(line => line.trim());
+    if (commentLines.length === 0) {
+        alert('请按照格式填写评论内容，至少需要第一行具体评论');
+        return;
+    }
+    
+    // 检查第一行是否为空
+    if (!commentLines[0].trim()) {
+        alert('第一行必须填写具体的评论内容');
+        return;
+    }
+    
+    // 显示加载状态
+    const submitBtn = document.querySelector('#commentOrderDrawer .drawer-footer .btn-primary');
+    const originalText = submitBtn.textContent;
+    submitBtn.textContent = '提交中...';
+    submitBtn.disabled = true;
+    
+    try {
+        // 发送订单数据到后端API
+        const response = await fetch('/api/orders/submit', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                service_id: currentService.id,
+                link: link,
+                quantity: parseInt(quantity),
+                order_type: currentOrderType,
+                comments: comments.trim()
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            const orderTypeText = currentOrderType === 'fixed' ? '固定下单' : '批量下单';
+            alert(`${orderTypeText}提交成功！\n订单ID: ${result.order_id || 'N/A'}`);
+            closeCommentDrawer();
+        } else {
+            alert('订单提交失败: ' + result.message);
+        }
+        
+    } catch (error) {
+        console.error('提交订单失败:', error);
+        alert('网络错误，请稍后重试');
+    } finally {
+        // 恢复按钮状态
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }
+}
+
+// 数量变化时重新计算总价
+document.addEventListener('DOMContentLoaded', function() {
+    // 使用事件委托来处理动态创建的元素
+    document.addEventListener('input', function(e) {
+        if (e.target.id === 'orderQuantity') {
+            // 普通服务数量变化监听
+            let value = parseInt(e.target.value) || 0;
+            e.target.value = value;
+            
+            // 更新数量提示显示 - API以1000为单位
+            const quantityRange = document.getElementById('quantityRange');
+            if (quantityRange) {
+                quantityRange.textContent = value * 1000;
+            }
+            
+            calculateTotal();
+        } else if (e.target.id === 'commentOrderQuantity') {
+            // 真人评论服务数量变化监听
+            const commentQuantityRange = document.getElementById('commentQuantityRange');
+            if (commentQuantityRange) {
+                commentQuantityRange.textContent = e.target.value;
+            }
+            
+            calculateCommentTotal();
+        }
+    });
+    
+    // 选项卡切换功能
+    const tabButtons = document.querySelectorAll('[data-bs-toggle="tab"]');
+    
+    tabButtons.forEach(function(button) {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            // 移除所有活动状态
+            tabButtons.forEach(function(btn) {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
+            });
+            
+            // 隐藏所有选项卡内容
+            const tabPanes = document.querySelectorAll('.tab-pane');
+            tabPanes.forEach(function(pane) {
+                pane.classList.remove('show', 'active');
+            });
+            
+            // 激活当前选项卡
+            this.classList.add('active');
+            this.setAttribute('aria-selected', 'true');
+            
+            // 显示对应的选项卡内容
+            const targetId = this.getAttribute('data-bs-target');
+            const targetPane = document.querySelector(targetId);
+            if (targetPane) {
+                targetPane.classList.add('show', 'active');
+            }
+        });
+    });
+});
+
+// 跳转到充值页面
+function goToRecharge() {
+    window.location.href = '/recharge';
+}
+
+// 复制邀请码
+function copyInviteCode() {
+    const inviteCode = '{{ user.invite_code }}';
+    const inviteLink = `${window.location.origin}/auth/register?invite_code=${inviteCode}`;
+    
+    // 创建临时文本区域
+    const tempTextArea = document.createElement('textarea');
+    tempTextArea.value = inviteLink;
+    document.body.appendChild(tempTextArea);
+    tempTextArea.select();
+    
+    try {
+        // 复制到剪贴板
+        document.execCommand('copy');
+        
+        // 显示成功提示
+        const button = event.target.closest('.btn-copy');
+        const originalIcon = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-check"></i>';
+        button.style.background = '#28a745';
+        button.style.color = 'white';
+        button.style.borderColor = '#28a745';
+        
+        setTimeout(() => {
+            button.innerHTML = originalIcon;
+            button.style.background = '#f8f9fa';
+            button.style.color = '#6c757d';
+            button.style.borderColor = '#dee2e6';
+        }, 2000);
+        
+        // 显示成功消息
+        showToast('邀请链接已复制到剪贴板！', 'success');
+        
+    } catch (err) {
+        console.error('复制失败:', err);
+        showToast('复制失败，请手动复制邀请码', 'error');
+    } finally {
+        document.body.removeChild(tempTextArea);
+    }
+}
+
+// 显示提示消息
+function showToast(message, type = 'info') {
+    // 创建提示元素
+    const toast = document.createElement('div');
+    toast.className = `toast-notification toast-${type}`;
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    // 添加样式
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: ${type === 'success' ? '#28a745' : type === 'error' ? '#dc3545' : '#17a2b8'};
+        color: white;
+        padding: 12px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 9999;
+        font-size: 14px;
+        font-weight: 500;
+        animation: slideInRight 0.3s ease-out;
+    `;
+    
+    // 添加到页面
+    document.body.appendChild(toast);
+    
+    // 3秒后自动移除
+    setTimeout(() => {
+        toast.style.animation = 'slideOutRight 0.3s ease-in';
+        setTimeout(() => {
+            if (document.body.contains(toast)) {
+                document.body.removeChild(toast);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// 添加动画样式
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        to {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+    }
+    
+    .toast-content {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}
