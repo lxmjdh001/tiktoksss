@@ -21,7 +21,9 @@ from app.models import user, order, member_level, commission
 app = FastAPI(
     title="TikTok API 管理后台",
     description="基于FastAPI的TikTok API管理系统",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url=None,  # 禁用API文档
+    redoc_url=None  # 禁用ReDoc文档
 )
 
 # 添加SessionMiddleware

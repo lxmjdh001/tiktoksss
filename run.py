@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 if __name__ == "__main__":
     print("🚀 启动TikTok API管理后台...")
     print("📱 访问地址: http://localhost:8008")
-    print("📚 API文档: http://localhost:8008/docs")
+    print("🏥 健康检查: http://localhost:8008/health")
     print("🛑 按 Ctrl+C 停止服务")
     print("-" * 50)
     
