@@ -111,7 +111,7 @@ async def submit_order(
             rate=cashback_rate
         )
         db.add(cashback_record)
-        db.commit()
+        db.flush()  # 刷新但不提交，确保数据在内存中
         
         # 计算代理返佣
         try:
@@ -121,6 +121,9 @@ async def submit_order(
         except Exception as e:
             print(f"返佣计算失败: {e}")
             # 返佣计算失败不影响订单创建
+        
+        # 最后提交所有更改
+        db.commit()
         
         return OrderResponse(
             success=True,
