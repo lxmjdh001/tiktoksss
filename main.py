@@ -29,7 +29,7 @@ app.add_middleware(SessionMiddleware, secret_key="your-secret-key-here-change-in
 
 # 静态文件和模板
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
-templates = Jinja2Templates(directory="/Users/chaoteng/Desktop/7c/tiktok/python_backend/app/templates")
+templates = Jinja2Templates(directory="app/templates")
 
 # 安全
 security = HTTPBearer()

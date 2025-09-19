@@ -16,7 +16,7 @@ import secrets
 import string
 
 router = APIRouter()
-templates = Jinja2Templates(directory="/Users/chaoteng/Desktop/7c/tiktok/python_backend/app/templates")
+templates = Jinja2Templates(directory="app/templates")
 
 def check_admin_permission(user: User) -> bool:
     """检查管理员权限"""

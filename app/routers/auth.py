@@ -10,7 +10,7 @@ from app.models.user import authenticate_user, create_user, get_current_user
 from app.config import settings
 
 router = APIRouter()
-templates = Jinja2Templates(directory="/Users/chaoteng/Desktop/7c/tiktok/python_backend/app/templates")
+templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/login", response_class=HTMLResponse)
 async def login_page(request: Request):

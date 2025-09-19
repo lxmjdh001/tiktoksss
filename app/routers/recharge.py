@@ -14,7 +14,7 @@ from typing import Optional
 from app.services.futoon_pay import FutoonPay, FutoonPayConfig
 
 router = APIRouter()
-templates = Jinja2Templates(directory="/Users/chaoteng/Desktop/7c/tiktok/python_backend/app/templates")
+templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/recharge", response_class=HTMLResponse)
 async def recharge_page(request: Request, db: Session = Depends(get_db)):

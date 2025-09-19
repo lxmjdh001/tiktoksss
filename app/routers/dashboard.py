@@ -13,7 +13,7 @@ from app.config import settings
 from app.services.appfuwu_client import appfuwu_client
 
 router = APIRouter()
-templates = Jinja2Templates(directory="/Users/chaoteng/Desktop/7c/tiktok/python_backend/app/templates")
+templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/dashboard", response_class=HTMLResponse)
 async def dashboard(request: Request, db: Session = Depends(get_db)):

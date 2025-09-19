@@ -17,7 +17,7 @@ import io
 import base64
 
 router = APIRouter()
-templates = Jinja2Templates(directory="/Users/chaoteng/Desktop/7c/tiktok/python_backend/app/templates")
+templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/agent", response_class=HTMLResponse)
 async def agent_page(request: Request, db: Session = Depends(get_db)):
