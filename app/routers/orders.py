@@ -75,6 +75,17 @@ async def submit_order(
         user.balance = user.balance - customer_total_price
         user.total_consumed = user.total_consumed + customer_total_price
         
+        # 计算用户返现（基于会员等级）
+        from app.config import settings
+        member_level_info = settings.member_levels.get(user.member_level, {
+            "name": "普通会员",
+            "cashback_rate": 0.02
+        })
+        cashback_rate = Decimal(str(member_level_info["cashback_rate"]))
+        cashback_amount = customer_total_price * cashback_rate
+        user.total_cashback = user.total_cashback + cashback_amount
+        user.balance = user.balance + cashback_amount  # 返现直接加到余额
+        
         # 在本地数据库创建订单记录
         order = Order(
             user_id=user.id,
@@ -89,9 +100,20 @@ async def submit_order(
         )
         
         db.add(order)
+        db.flush()  # 获取订单ID
+        
+        # 创建返现记录
+        from app.models.order import CashbackRecord
+        cashback_record = CashbackRecord(
+            user_id=user.id,
+            order_id=order.id,
+            amount=cashback_amount,
+            rate=cashback_rate
+        )
+        db.add(cashback_record)
         db.commit()
         
-        # 计算返佣
+        # 计算代理返佣
         try:
             from app.services.commission_service import CommissionService
             commission_service = CommissionService(db)
@@ -103,7 +125,7 @@ async def submit_order(
         return OrderResponse(
             success=True,
             order_id=str(order.id),  # 返回本地订单ID
-            message=f"订单提交成功！已扣除 ¥{customer_total_price}，API订单ID: {api_result.get('order_id')}"
+            message=f"订单提交成功！已扣除 ¥{customer_total_price}，返现 ¥{cashback_amount:.2f}，API订单ID: {api_result.get('order_id')}"
         )
         
     except Exception as e:

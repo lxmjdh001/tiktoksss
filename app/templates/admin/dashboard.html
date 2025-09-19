@@ -501,19 +501,6 @@
                                     <span class="member-badge">{{ member_level_info.name }}</span>
                                 </div>
                             </div>
-                            {% if user.invite_code %}
-                            <div class="info-item">
-                                <div class="info-label">我的邀请码</div>
-                                <div class="info-value">
-                                    <div class="invite-code-container">
-                                        <code class="invite-code">{{ user.invite_code }}</code>
-                                        <button class="btn btn-sm btn-copy" onclick="copyInviteCode()" title="复制邀请码">
-                                            <i class="fas fa-copy"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            {% endif %}
                         </div>
                     </div>
                     
