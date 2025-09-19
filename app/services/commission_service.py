@@ -33,10 +33,10 @@ class CommissionService:
             # 确定返佣类型和比例
             if level == 0:
                 commission_type = "direct"
-                commission_rate = agent.direct_commission_rate
+                commission_rate = Decimal("0.05")  # 直接邀请返佣 5%
             else:
                 commission_type = "indirect"
-                commission_rate = agent.indirect_commission_rate
+                commission_rate = Decimal("0.02")  # 间接邀请返佣 2%
             
             # 计算返佣金额
             commission_amount = Decimal(str(order.charge)) * commission_rate
